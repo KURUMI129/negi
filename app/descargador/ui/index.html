@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>Negi</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-logo" viewBox="0 0 24 24"><path d="M12 4v10m0 0-4-4m4 4 4-4M5 19h14" /></symbol>
+      <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+      <symbol id="i-pegar" viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></symbol>
+      <symbol id="i-carpeta" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
+      <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></symbol>
+      <symbol id="i-pantalla" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></symbol>
+      <symbol id="i-musica" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+      <symbol id="i-alerta" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l12-7Z"/></symbol>
+      <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+      <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-recargar" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></symbol>
+    </defs>
+  </svg>
+
+  <main class="app">
+    <header class="barra">
+      <div class="marca">
+        <img class="marca-icono" src="logo.png" alt="" width="40" height="40">
+        <div class="marca-texto">
+          <h1>Negi</h1>
+          <span class="lema">Descargador de videos</span>
+        </div>
+      </div>
+      <button class="btn-icono" id="btn-ajustes" aria-label="Ajustes" title="Ajustes">
+        <svg><use href="#i-ajustes"/></svg>
+      </button>
+    </header>
+
+    <nav class="pestanas" role="tablist" aria-label="Secciones">
+      <button role="tab" id="tab-descargar" aria-controls="seccion-descargar" aria-selected="true">Descargar</button>
+      <button role="tab" id="tab-historial" aria-controls="seccion-historial" aria-selected="false" tabindex="-1">
+        Historial</button>
+    </nav>
+
+    <div class="tira tira-version" id="tira-version" role="status" hidden>
+      <svg><use href="#i-recargar"/></svg>
+      <span id="texto-version">Hay una versión nueva de Negi</span>
+      <button class="btn btn-primario btn-chico" id="btn-actualizar-app">Actualizar</button>
+    </div>
+
+    <div id="seccion-descargar" role="tabpanel" aria-labelledby="tab-descargar" class="seccion">
+    <section class="tarjeta" aria-labelledby="lbl-enlace">
+      <label id="lbl-enlace" for="enlace" class="etiqueta">Enlace del video</label>
+      <div class="fila-enlace">
+        <input id="enlace" type="url" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="Enlace de YouTube, TikTok, Facebook, Instagram, X…" aria-describedby="ayuda-enlace">
+        <button class="btn btn-secundario" id="btn-pegar"><svg><use href="#i-pegar"/></svg>Pegar</button>
+      </div>
+      <p id="ayuda-enlace" class="ayuda">Copia el enlace del video y pulsa <b>Pegar</b>.</p>
+      <div class="tira" id="tira-copiado" role="status" hidden>
+        <svg><use href="#i-pegar"/></svg>
+        <span>Copiaste otro enlace</span>
+        <button class="btn btn-texto" id="btn-usar-copiado">Usar</button>
+        <button class="btn-icono btn-mini" id="btn-ignorar-copiado" aria-label="Ignorar"><svg><use href="#i-cerrar"/></svg></button>
+      </div>
+
+      <div id="vista" class="vista" hidden>
+        <div class="miniatura" id="miniatura"></div>
+        <div class="vista-texto">
+          <p class="vista-titulo" id="vista-titulo"></p>
+          <p class="vista-meta" id="vista-meta"></p>
+          <span class="insignia" id="vista-insignia"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="tarjeta" aria-labelledby="lbl-formato">
+      <p id="lbl-formato" class="etiqueta">Formato</p>
+      <div class="formatos" role="radiogroup" aria-labelledby="lbl-formato">
+        <label class="formato">
+          <input type="radio" name="modo" value="max" checked>
+          <span class="formato-caja">
+            <svg><use href="#i-video"/></svg>
+            <span class="formato-nombre">Máxima calidad</span>
+            <span class="formato-desc">La mejor imagen · MKV</span>
+          </span>
+        </label>
+        <label class="formato">
+          <input type="radio" name="modo" value="mp4">
+          <span class="formato-caja">
+            <svg><use href="#i-pantalla"/></svg>
+            <span class="formato-nombre">Compatible</span>
+            <span class="formato-desc">Se abre en todo · MP4</span>
+          </span>
+        </label>
+        <label class="formato">
+          <input type="radio" name="modo" value="mp3">
+          <span class="formato-caja">
+            <svg><use href="#i-musica"/></svg>
+            <span class="formato-nombre">Solo audio</span>
+            <span class="formato-desc">Música · MP3</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="calidades" id="calidades" role="radiogroup" aria-labelledby="lbl-calidad">
+        <span id="lbl-calidad" class="calidad-etiqueta">Calidad</span>
+        <label class="chip"><input type="radio" name="calidad" value="" checked><span>Máxima</span></label>
+        <label class="chip"><input type="radio" name="calidad" value="2160"><span>4K</span></label>
+        <label class="chip"><input type="radio" name="calidad" value="1440"><span>1440p</span></label>
+        <label class="chip"><input type="radio" name="calidad" value="1080"><span>1080p</span></label>
+        <label class="chip"><input type="radio" name="calidad" value="720"><span>720p</span></label>
+        <label class="chip"><input type="radio" name="calidad" value="480"><span>480p</span></label>
+      </div>
+
+      <div class="destino">
+        <svg><use href="#i-carpeta"/></svg>
+        <div class="destino-texto">
+          <span class="destino-titulo">Guardar en</span>
+          <span class="destino-ruta" id="carpeta" title=""></span>
+        </div>
+        <button class="btn btn-texto" id="btn-carpeta">Cambiar</button>
+      </div>
+    </section>
+
+    <section class="accion" aria-live="polite">
+      <div id="panel-inicio" class="panel botones-accion">
+        <button class="btn btn-primario btn-grande" id="btn-descargar" disabled>
+          <svg><use href="#i-logo"/></svg>Descargar
+        </button>
+        <button class="btn btn-secundario btn-grande btn-cola" id="btn-agregar" disabled>
+          <svg><use href="#i-mas"/></svg>A la cola
+        </button>
+      </div>
+
+      <div id="panel-cola" class="tarjeta cola" hidden>
+        <p class="etiqueta cola-titulo">Descargas <span id="cola-cuenta" class="cuenta num"></span></p>
+        <ul id="cola-lista" class="cola-lista"></ul>
+      </div>
+
+      <div id="panel-listo" class="panel tarjeta panel-listo" hidden>
+        <div class="listo-cabecera">
+          <span class="circulo-ok"><svg><use href="#i-check"/></svg></span>
+          <div>
+            <p class="listo-titulo">¡Listo!</p>
+            <p class="listo-archivo" id="listo-archivo"></p>
+          </div>
+        </div>
+        <div class="listo-botones">
+          <button class="btn btn-primario" id="btn-reproducir"><svg><use href="#i-play"/></svg>Reproducir</button>
+          <button class="btn btn-secundario" id="btn-abrir"><svg><use href="#i-carpeta"/></svg>Abrir carpeta</button>
+          <button class="btn btn-texto" id="btn-otro">Descargar otro</button>
+        </div>
+      </div>
+
+      <p id="mensaje" class="mensaje" role="alert" hidden>
+        <svg><use href="#i-alerta"/></svg><span id="mensaje-texto"></span>
+      </p>
+    </section>
+
+    </div>
+
+    <div id="seccion-historial" role="tabpanel" aria-labelledby="tab-historial" class="seccion" hidden>
+      <ul id="historial-lista" class="historial-lista"></ul>
+      <p id="historial-vacio" class="vacio" hidden>Aquí aparecerán los videos que descargues.</p>
+    </div>
+
+    <p class="legal">Descarga solo contenido que tengas derecho a guardar.</p>
+  </main>
+
+  <div class="velo" id="velo" hidden></div>
+  <aside class="hoja" id="hoja" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" hidden>
+    <header class="hoja-cabecera">
+      <h2 id="hoja-titulo">Ajustes</h2>
+      <button class="btn-icono" id="btn-cerrar-ajustes" aria-label="Cerrar ajustes">
+        <svg><use href="#i-cerrar"/></svg>
+      </button>
+    </header>
+
+    <div class="grupo">
+      <p class="grupo-titulo">Actualizaciones</p>
+      <p class="ayuda">Las páginas de videos cambian seguido. La app revisa sola una vez al día, pero puedes hacerlo ahora.</p>
+      <button class="btn btn-secundario" id="btn-actualizar"><svg><use href="#i-recargar"/></svg>Buscar actualizaciones</button>
+      <p class="ayuda" id="estado-actualizar" aria-live="polite"></p>
+    </div>
+
+    <div class="grupo">
+      <p class="grupo-titulo">Acerca de</p>
+      <dl class="datos">
+        <dt>Versión de la app</dt><dd id="v-app" class="num"></dd>
+        <dt>Motor de descargas</dt><dd id="v-motor" class="num">…</dd>
+      </dl>
+      <button class="btn btn-texto" id="btn-licencias">Ver licencias</button>
+    </div>
+
+    <p class="ayuda">Funciona con yt-dlp y ffmpeg, programas libres que corren en tu computadora.
+      Esta app no envía tus datos a ningún lado.</p>
+    <p class="ayuda credito">Ícono basado en la ilustración oficial de Hatsune Miku,
+      © Crypton Future Media, Inc. 2007, con licencia CC BY-NC 3.0. App gratuita y sin fines comerciales.</p>
+  </aside>
+
+  <div class="aviso" id="aviso" role="status" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# Solo se publica el código de la app de Windows y su empaquetado.
+# Documentos internos, notas de trabajo y compilados se quedan fuera.
+docs/
+.superpowers/
+.impeccable/
+.claude/
+salida/
+android/
+__pycache__/
+.pytest_cache/
+*.pyc
+empaquetado/icono.ico
+empaquetado/icono.png

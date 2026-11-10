@@ -1,0 +1,48 @@
+﻿NEGI 1.2.0 · Descargador de videos
+==================================
+
+"Negi" (ネギ) es el cebollín que siempre lleva Hatsune Miku.
+
+Descarga videos de YouTube, TikTok, Facebook, X, Instagram y muchas páginas más,
+en la máxima calidad, en MP4 compatible o solo el audio en MP3.
+Todo se hace en tu computadora: sin páginas web, sin anuncios y sin cuentas.
+
+
+SI WINDOWS DICE "WINDOWS PROTEGIÓ SU PC"
+----------------------------------------
+Es normal: el programa no tiene firma digital (cuesta dinero cada año), no es un virus.
+
+  1. Pulsa "Más información".
+  2. Pulsa "Ejecutar de todas formas".
+
+Solo pasa la primera vez.
+
+
+CÓMO SE USA
+-----------
+  1. Copia el enlace del video (en YouTube: Compartir → Copiar).
+  2. Abre "Negi" y pulsa "Pegar".
+  3. Elige el formato y pulsa "Descargar".
+  4. Al terminar, pulsa "Reproducir" o "Abrir carpeta".
+
+¿Varios videos? Pega uno, pulsa "A la cola", y repite: se bajan uno tras otro.
+En la pestaña "Historial" están los últimos 100 que descargaste.
+En "Calidad" puedes elegir 1080p o 720p para que ocupen menos espacio.
+
+Los videos se guardan en tu carpeta Descargas (puedes cambiarla).
+
+
+SI UN DÍA DEJA DE DESCARGAR
+---------------------------
+YouTube cambia cosas seguido. La app se actualiza sola una vez al día; si aun así
+falla, abre Ajustes (el engrane) y pulsa "Buscar actualizaciones".
+
+
+IMPORTANTE
+----------
+Descarga solo contenido que tengas derecho a guardar.
+
+Incluye yt-dlp (Unlicense), ffmpeg (GPL) y deno (MIT), sin modificar.
+El ícono usa la ilustración oficial de Hatsune Miku, © Crypton Future Media, Inc. 2007,
+con licencia CC BY-NC 3.0: esta app es gratuita y no se puede vender.
+Todas las licencias están en la carpeta "licencias" del programa.
