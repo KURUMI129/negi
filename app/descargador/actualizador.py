@@ -8,6 +8,8 @@ import json
 import re
 import subprocess
 import tempfile
+import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Callable
@@ -38,15 +40,37 @@ def leer_lanzamiento(datos: dict) -> dict | None:
     """Extrae versión, notas y enlaces del JSON de GitHub. Solo acepta enlaces de GitHub."""
     archivos = {a.get("name"): a.get("browser_download_url", "") for a in datos.get("assets") or []}
     instalador, huella = archivos.get(INSTALADOR, ""), archivos.get(INSTALADOR + ".sha256", "")
-    if not (instalador.startswith(ORIGENES_PERMITIDOS) and huella.startswith(ORIGENES_PERMITIDOS)):
+    if not (destino_permitido(instalador) and destino_permitido(huella)):
         return None
     return {"version": (datos.get("tag_name") or "").lstrip("vV"), "notas": datos.get("body") or "",
             "instalador": instalador, "sha256": huella}
 
 
+HOSTS_PERMITIDOS = {"github.com", "api.github.com", "objects.githubusercontent.com",
+                    "release-assets.githubusercontent.com"}
+
+
+def destino_permitido(url: str) -> bool:
+    """Solo https y solo servidores de GitHub (también para cada redirección)."""
+    p = urllib.parse.urlsplit(url)
+    return p.scheme == "https" and (p.hostname or "").lower() in HOSTS_PERMITIDOS
+
+
+class _SoloGitHub(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not destino_permitido(newurl):
+            raise urllib.error.URLError(f"redirección no permitida: {urllib.parse.urlsplit(newurl).hostname}")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_abridor = urllib.request.build_opener(_SoloGitHub)
+
+
 def _abrir(url: str, timeout: float = 15):
+    if not destino_permitido(url):
+        raise urllib.error.URLError("dirección no permitida")
     req = urllib.request.Request(url, headers={"User-Agent": "Negi", "Accept": "application/vnd.github+json"})
-    return urllib.request.urlopen(req, timeout=timeout)  # noqa: S310 - solo URLs https de GitHub
+    return _abridor.open(req, timeout=timeout)
 
 
 def buscar(version_local: str) -> dict | None:

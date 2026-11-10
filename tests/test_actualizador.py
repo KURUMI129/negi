@@ -49,6 +49,18 @@ def test_no_instala_version_con_ruta_rara(monkeypatch):
     assert llamadas == []
 
 
+@pytest.mark.parametrize("url,permitida", [
+    ("https://release-assets.githubusercontent.com/github-production-release-asset/1/x", True),
+    ("https://objects.githubusercontent.com/x", True),
+    ("https://github.com/KURUMI129/negi/releases/download/v1.2.0/Negi-Setup.exe", True),
+    ("http://release-assets.githubusercontent.com/x", False),
+    ("https://malo.example/Negi-Setup.exe", False),
+    ("https://github.com.malo.example/x", False),
+])
+def test_redirecciones_solo_a_github(url, permitida):
+    assert actualizador.destino_permitido(url) is permitida
+
+
 def test_verificar_sha256(tmp_path):
     f = tmp_path / "Negi-Setup.exe"
     f.write_bytes(b"instalador")
