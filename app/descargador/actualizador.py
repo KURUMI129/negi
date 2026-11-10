@@ -73,13 +73,27 @@ def _abrir(url: str, timeout: float = 15):
     return _abridor.open(req, timeout=timeout)
 
 
+def elegir_mas_nueva(lanzamientos: list[dict]) -> dict | None:
+    """La versión publicada (no borrador ni de prueba) más nueva que traiga el instalador de Windows.
+    Así una versión que solo trae el APK de Android no confunde a la app de Windows."""
+    mejor = None
+    for datos in lanzamientos:
+        if not isinstance(datos, dict) or datos.get("draft") or datos.get("prerelease"):
+            continue
+        info = leer_lanzamiento(datos)
+        if info and _numeros(info["version"]) and (mejor is None or es_mas_nueva(info["version"], mejor["version"])):
+            mejor = info
+    return mejor
+
+
 def buscar(version_local: str) -> dict | None:
     """Devuelve la info de una versión más nueva, o None (sin internet, sin versión nueva, repo sin configurar)."""
     if REPO.startswith("PENDIENTE"):
         return None
     try:
-        with _abrir(f"https://api.github.com/repos/{REPO}/releases/latest") as r:
-            info = leer_lanzamiento(json.load(r))
+        with _abrir(f"https://api.github.com/repos/{REPO}/releases?per_page=20") as r:
+            datos = json.load(r)
+        info = elegir_mas_nueva(datos if isinstance(datos, list) else [])
     except (OSError, ValueError):
         return None
     return info if info and es_mas_nueva(info["version"], version_local) else None

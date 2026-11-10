@@ -30,6 +30,16 @@ def test_leer_lanzamiento():
                     "sha256": LANZAMIENTO["assets"][1]["browser_download_url"]}
 
 
+def test_elegir_la_mas_nueva_con_instalador_de_windows():
+    solo_apk = {"tag_name": "v1.3.0", "assets": [LANZAMIENTO["assets"][2]]}
+    borrador = {**LANZAMIENTO, "tag_name": "v9.0.0", "draft": True}
+    prueba = {**LANZAMIENTO, "tag_name": "v8.0.0", "prerelease": True}
+    vieja = {**LANZAMIENTO, "tag_name": "v1.1.0"}
+    info = actualizador.elegir_mas_nueva([solo_apk, borrador, prueba, vieja, LANZAMIENTO])
+    assert info["version"] == "1.2.0"
+    assert actualizador.elegir_mas_nueva([solo_apk]) is None
+
+
 def test_leer_lanzamiento_sin_instalador():
     assert actualizador.leer_lanzamiento({"tag_name": "v9.0.0", "assets": []}) is None
 
