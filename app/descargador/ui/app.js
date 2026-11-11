@@ -26,7 +26,13 @@ function textoCalidad(alto) {
   if (alto >= 1440) return "Hasta 1440p (2K)";
   return `Hasta ${alto}p`;
 }
-const textoCalidadElegida = (m, c) => (c ? (m === "mp3" ? `${c} kbps` : `${c}p`) : "");
+function tamanoBonito(bytes) {
+  if (!bytes) return "";
+  const gb = bytes / 1024 ** 3;
+  if (gb >= 1) return `${gb.toFixed(gb >= 10 ? 0 : 1)} GB`;
+  return `${Math.max(1, Math.round(bytes / 1024 ** 2))} MB`;
+}
+const textoCalidadElegida =(m, c) => (c ? (m === "mp3" ? `${c} kbps` : `${c}p`) : "");
 const pareceEnlace =(t) => /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}\/\S+/i.test((t || "").trim());
 const nombreArchivo = (ruta) => ruta.split(/[\\/]/).pop();
 const limpio = (t) => (t && !/unknown|n\/a/i.test(t) ? t : "");
@@ -125,8 +131,8 @@ async function pedirVista(url) {
   estado.vista = r;
   $("vista-titulo").textContent = r.titulo;
   $("vista-titulo").title = r.titulo;
-  $("vista-meta").textContent = [r.canal, r.es_lista ? `${r.cantidad} videos` : duracion(r.duracion)]
-    .filter(Boolean).join(" · ");
+  $("vista-meta").textContent = [r.canal, r.es_lista ? `${r.cantidad} videos` : duracion(r.duracion),
+    r.tamano ? `≈ ${tamanoBonito(r.tamano)}` : ""].filter(Boolean).join(" · ");
   $("vista-insignia").textContent = r.es_lista ? "Lista de reproducción" : textoCalidad(r.alto_max);
   $("vista-insignia").hidden = !$("vista-insignia").textContent;
   miniatura($("miniatura"), r.miniatura);
@@ -144,6 +150,14 @@ async function encolar(ahora) {
     if (!lista) return;
   }
   mostrarError("");
+  // Aviso de espacio: mientras descarga se necesita cerca del doble del tamaño final.
+  if (estado.vista.tamano) {
+    const e = await api().revisar_espacio(estado.vista.tamano);
+    if (!e.suficiente && !confirm(
+      `Este video pesa cerca de ${tamanoBonito(estado.vista.tamano)} y mientras se descarga necesita ` +
+      `unos ${tamanoBonito(e.necesario)} libres.\nEn la carpeta elegida solo quedan ${tamanoBonito(e.libre)}.\n\n` +
+      "Puedes liberar espacio, elegir una calidad menor u otra carpeta.\n¿Intentar de todas formas?")) return;
+  }
   const args = [estado.url, modo(), calidadElegida(), lista,
                 estado.vista.titulo, estado.vista.miniatura || ""];
   const id = await (ahora ? api().descargar(...args) : api().agregar_a_cola(...args));

@@ -51,6 +51,18 @@ def test_argumentos_calidad_none_igual_que_antes(tmp_path):
         motor.argumentos("max", str(tmp_path), URL_CORTO)
 
 
+def test_resumen_tamano_suma_video_y_audio():
+    info = {"title": "x", "formats": [{"height": 1080, "vcodec": "avc1"}],
+            "requested_formats": [{"filesize": 900_000_000}, {"filesize_approx": 100_000_000}]}
+    assert motor.resumen_info(info)["tamano"] == 1_000_000_000
+
+
+def test_resumen_tamano_aproximado_o_desconocido():
+    assert motor.resumen_info({"title": "x", "filesize_approx": 5_000})["tamano"] == 5_000
+    assert motor.resumen_info({"title": "x"})["tamano"] is None
+    assert motor.resumen_info({"_type": "playlist", "title": "l", "entries": [{}, {}]})["tamano"] is None
+
+
 def test_argumentos_mp4_prefiere_h264(tmp_path):
     a = motor.argumentos("mp4", str(tmp_path), URL_CORTO)
     assert a[a.index("-f") + 1] == "bv*[vcodec^=avc1]+ba[acodec^=mp4a]/bv*+ba/b"

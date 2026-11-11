@@ -7,6 +7,7 @@ import datetime as dt
 import json
 import os
 import subprocess
+import shutil
 import threading
 import urllib.parse
 from pathlib import Path
@@ -151,6 +152,16 @@ class Api:
                   titulo: str = "", miniatura: str = "") -> str | None:
         """'Descargar ahora': entra al frente de la cola."""
         return self.agregar_a_cola(url, modo, calidad, lista, titulo, miniatura, al_frente=True)
+
+    def revisar_espacio(self, tamano) -> dict:
+        """¿Cabe el video? Mientras descarga se necesita cerca del doble (imagen + sonido + unión)."""
+        carpeta = self._ajustes["carpeta"] if Path(self._ajustes["carpeta"]).is_dir() else ajustes.carpeta_descargas()
+        try:
+            libre = shutil.disk_usage(carpeta).free
+        except OSError:
+            return {"suficiente": True, "libre": None, "necesario": None}
+        necesario = 2 * int(tamano) if isinstance(tamano, (int, float)) and tamano > 0 else None
+        return {"suficiente": necesario is None or libre >= necesario, "libre": libre, "necesario": necesario}
 
     def quitar_de_cola(self, ident: str) -> None:
         self._cola.quitar(ident)

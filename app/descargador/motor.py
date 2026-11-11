@@ -157,7 +157,17 @@ def vista_previa(url: str) -> dict:
     salida = r.stdout.decode("utf-8", "replace")
     if r.returncode != 0 or not salida.strip():
         raise ErrorDescarga(mensaje_amigable(r.stderr.decode("utf-8", "replace") or "error desconocido"))
-    info = json.loads(salida)
+    return resumen_info(json.loads(salida))
+
+
+def _tamano_estimado(info: dict) -> int | None:
+    """Bytes aproximados del video en máxima calidad (video + audio), o None si no se sabe."""
+    partes = info.get("requested_formats") or [info]
+    total = sum(int(p.get("filesize") or p.get("filesize_approx") or 0) for p in partes if isinstance(p, dict))
+    return total or None
+
+
+def resumen_info(info: dict) -> dict:
     es_lista = info.get("_type") == "playlist"
     altos = [f.get("height") for f in info.get("formats") or [] if f.get("height") and f.get("vcodec") != "none"]
     miniaturas = info.get("thumbnails") or []
@@ -170,6 +180,7 @@ def vista_previa(url: str) -> dict:
         "alto_max": max(altos) if altos else None,
         "es_lista": es_lista,
         "cantidad": len(info.get("entries") or []) if es_lista else 1,
+        "tamano": None if es_lista else _tamano_estimado(info),
     }
 
 

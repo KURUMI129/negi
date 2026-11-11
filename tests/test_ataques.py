@@ -69,7 +69,7 @@ def test_superficie_minima_expuesta_a_la_ventana():
     assert publicos == {
         "abrir_carpeta", "abrir_licencias", "actualizar_app", "agregar_a_cola", "buscar_actualizacion",
         "cola", "descargar", "elegir_carpeta", "historial", "info", "llamar_atencion", "portapapeles",
-        "quitar_de_cola", "quitar_historial", "reproducir", "version_motor", "vista_previa"}
+        "quitar_de_cola", "quitar_historial", "reproducir", "revisar_espacio", "version_motor", "vista_previa"}
 
 
 # ---- 6. Actualizador contra un servidor malicioso (simulado) ----

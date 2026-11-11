@@ -35,6 +35,18 @@ def test_api_calidad_cruzada_se_vuelve_maxima(datos, monkeypatch):
     assert recibidas == [("max", None), ("mp3", None), ("mp3", 192), ("mp4", 720)]
 
 
+def test_api_revisar_espacio(datos, monkeypatch):
+    import collections
+    import shutil
+    Uso = collections.namedtuple("Uso", "total used free")
+    monkeypatch.setattr(shutil, "disk_usage", lambda p: Uso(10**12, 0, 3 * 10**9))
+    api = Api()
+    assert api.revisar_espacio(1 * 10**9) == {"suficiente": True, "libre": 3 * 10**9, "necesario": 2 * 10**9}
+    assert api.revisar_espacio(2 * 10**9)["suficiente"] is False      # necesita ~4 GB, hay 3
+    assert api.revisar_espacio(None)["suficiente"] is True            # tamaño desconocido: no se bloquea
+    assert api.revisar_espacio("basura")["suficiente"] is True
+
+
 def test_api_rechaza_calidad_o_modo_invalido(datos):
     api = Api()
     assert api.agregar_a_cola("https://x.com/v", "max", "9999") is None
