@@ -1,4 +1,4 @@
-﻿NEGI 1.2.0 · Descargador de videos
+﻿NEGI 1.3.0 · Descargador de videos
 ==================================
 
 "Negi" (ネギ) es el cebollín que siempre lleva Hatsune Miku.

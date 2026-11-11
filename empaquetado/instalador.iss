@@ -3,7 +3,7 @@
 ; El AppId no cambia: instalar Negi encima del antiguo "Descargador de Videos" lo actualiza.
 
 #define Nombre "Negi"
-#define Version "1.2.0"
+#define Version "1.3.0"
 #define Exe "Negi.exe"
 
 [Setup]
