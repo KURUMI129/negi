@@ -8,6 +8,7 @@ import json
 import os
 import subprocess
 import threading
+import urllib.parse
 from pathlib import Path
 
 from . import NOMBRE, VERSION, actualizador, ajustes, historial, motor, rutas
@@ -65,8 +66,29 @@ def parpadear_ventana() -> None:
         user32.FlashWindowEx(ctypes.byref(info))
 
 
+MAX_LARGO_URL = 2048
+
+
+def validar_url(url: str) -> str | None:
+    """Solo enlaces web normales (http/https). Nada de archivos locales, rutas de red,
+    caracteres de control ni textos gigantes."""
+    if not isinstance(url, str):
+        return None
+    url = url.strip()
+    if not url or len(url) > MAX_LARGO_URL or any(ord(c) < 32 or ord(c) == 127 for c in url) or "\\" in url:
+        return None
+    if "://" not in url:
+        url = "https://" + url
+    p = urllib.parse.urlsplit(url)
+    if p.scheme.lower() not in ("http", "https") or "." not in (p.hostname or ""):
+        return None
+    return url
+
+
 class Api:
     """Métodos que la interfaz puede llamar con `pywebview.api.<nombre>()`."""
+
+    MAX_COLA = 100  # más que suficiente para una persona; evita congelar la ventana
 
     def __init__(self) -> None:
         self._ventana = None
@@ -76,7 +98,7 @@ class Api:
         self._version_nueva: dict | None = None
 
     # --- uso interno -----------------------------------------------------
-    def conectar(self, ventana) -> None:
+    def _conectar(self, ventana) -> None:
         self._ventana = ventana
 
     def _emitir(self, evento: dict) -> None:
@@ -85,7 +107,7 @@ class Api:
         if self._ventana:
             self._ventana.evaluate_js(f"window.alEvento({json.dumps(evento, ensure_ascii=False)})")
 
-    def descargando(self) -> bool:
+    def _descargando(self) -> bool:
         return self._cola.ocupada()
 
     def _ruta_permitida(self, ruta: str) -> bool:
@@ -97,6 +119,9 @@ class Api:
         return {"nombre": NOMBRE, "version": VERSION, **self._ajustes}
 
     def vista_previa(self, url: str) -> dict:
+        url = validar_url(url)
+        if url is None:
+            return {"ok": False, "error": "Ese texto no es un enlace válido de una página de videos."}
         try:
             return {"ok": True, **motor.vista_previa(url)}
         except motor.ErrorDescarga as e:
@@ -106,7 +131,10 @@ class Api:
 
     def agregar_a_cola(self, url: str, modo: str, calidad: str = "", lista: bool = False,
                        titulo: str = "", miniatura: str = "", al_frente: bool = False) -> str | None:
-        if modo not in ajustes.MODOS or calidad not in ajustes.CALIDADES or not url.strip():
+        url = validar_url(url)
+        if url is None or modo not in ajustes.MODOS or calidad not in ajustes.CALIDADES:
+            return None
+        if len(self._cola.elementos()) >= self.MAX_COLA:
             return None
         es_kbps = bool(calidad) and int(calidad) in motor.AUDIO_KBPS
         if calidad and (modo == "mp3") != es_kbps:
@@ -130,7 +158,7 @@ class Api:
     def cola(self) -> list[dict]:
         return self._cola.elementos()
 
-    def cancelar_y_esperar(self, timeout: float = 10) -> None:
+    def _cancelar_y_esperar(self, timeout: float = 10) -> None:
         """Al cerrar la app: vacía la cola y deja que la descarga actual borre sus archivos a medias."""
         self._cola.cancelar_todo_y_esperar(timeout)
 
@@ -225,7 +253,7 @@ class Api:
         return None
 
     # --- revisión automática al abrir ------------------------------------
-    def revisar_al_abrir(self) -> None:
+    def _revisar_al_abrir(self) -> None:
         def buscar_app() -> None:
             self._version_nueva = actualizador.buscar(VERSION)
             if self._version_nueva:

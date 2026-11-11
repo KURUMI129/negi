@@ -17,6 +17,7 @@ from typing import Callable
 # Repositorio público donde se publican las versiones ("usuario/repositorio").
 REPO = "KURUMI129/negi"
 INSTALADOR = "Negi-Setup.exe"
+MAX_TAMANO = 400 * 1024 * 1024  # el instalador real pesa ~114 MB; nada más grande se acepta
 ORIGENES_PERMITIDOS = ("https://github.com/", "https://objects.githubusercontent.com/")
 _HASH = re.compile(r"\b[0-9a-fA-F]{64}\b")
 
@@ -120,13 +121,18 @@ def descargar_e_instalar(info: dict, al_progreso: Callable[[float], None]) -> st
             huella = r.read(4096).decode("utf-8", "replace")
         with _abrir(info["instalador"], timeout=60) as r, open(destino, "wb") as f:
             total = int(r.headers.get("Content-Length") or 0)
+            if total > MAX_TAMANO:
+                raise OSError("archivo demasiado grande")
             hecho = 0
             for bloque in iter(lambda: r.read(1 << 20), b""):
-                f.write(bloque)
                 hecho += len(bloque)
+                if hecho > MAX_TAMANO:  # el servidor mintió sobre el tamaño
+                    raise OSError("archivo demasiado grande")
+                f.write(bloque)
                 if total:
                     al_progreso(hecho * 100 / total)
-    except OSError:
+    except (OSError, ValueError):
+        destino.unlink(missing_ok=True)
         return "No se pudo descargar la actualización. Revisa tu conexión e inténtalo más tarde."
     if not verificar(destino, huella):
         destino.unlink(missing_ok=True)

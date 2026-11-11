@@ -34,20 +34,20 @@ def main() -> None:
     ventana = webview.create_window(
         NOMBRE, url=str(rutas.dir_ui() / "index.html"), js_api=api,
         width=580, height=760, min_size=(480, 640), background_color="#F3F5F6", text_select=False)
-    api.conectar(ventana)
+    api._conectar(ventana)
 
     def al_cerrar():
-        if api.descargando():
+        if api._descargando():
             # MessageBox nativo: el diálogo de pywebview puede bloquearse dentro del evento de cierre.
             MB_YESNO_PREGUNTA_SEGUNDO = 0x4 | 0x20 | 0x100 | 0x40000  # Sí/No, "?", "No" por defecto, al frente
             if _aviso("Descargas en curso", "Hay descargas en curso o en la cola.\n¿Cerrar y cancelarlas?",
                       MB_YESNO_PREGUNTA_SEGUNDO) != 6:
                 return False
-            api.cancelar_y_esperar(10)
+            api._cancelar_y_esperar(10)
         return True
 
     ventana.events.closing += al_cerrar
-    ventana.events.loaded += api.revisar_al_abrir
+    ventana.events.loaded += api._revisar_al_abrir
 
     try:
         webview.start(gui="edgechromium", private_mode=True)

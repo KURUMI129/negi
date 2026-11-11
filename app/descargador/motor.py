@@ -245,7 +245,7 @@ class Descarga:
                         self._ids.add(evento.pop("id"))
                     self.al_evento(evento)
             codigo = self.proceso.wait()
-        except OSError as e:
+        except (OSError, ValueError) as e:  # ValueError: enlace con caracter nulo u otro argumento inválido
             ultimo_error = str(e)
         try:
             if self.cancelada:
