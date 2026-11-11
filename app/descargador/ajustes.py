@@ -11,7 +11,8 @@ from pathlib import Path
 from . import rutas
 
 MODOS = ("max", "mp4", "mp3")
-CALIDADES = ("", "2160", "1440", "1080", "720", "480")  # "" = la máxima disponible
+# "" = la máxima disponible. Video: alto en píxeles. Audio MP3: kbps.
+CALIDADES = ("", "2160", "1440", "1080", "720", "480", "320", "192", "128")
 _candado = threading.Lock()
 
 # {374DE290-123F-4565-9164-39C4925E467B} = carpeta "Descargas" de Windows

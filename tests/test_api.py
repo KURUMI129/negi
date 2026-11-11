@@ -24,6 +24,17 @@ def test_api_reproduce_lo_del_historial(datos, tmp_path, monkeypatch):
     assert abiertos == [str(video)]
 
 
+def test_api_calidad_cruzada_se_vuelve_maxima(datos, monkeypatch):
+    api = Api()
+    recibidas = []
+    monkeypatch.setattr(api._cola, "agregar", lambda url, modo, calidad, *a, **k: recibidas.append((modo, calidad)) or "x")
+    api.agregar_a_cola("https://x.com/v", "max", "320")   # kbps en un video
+    api.agregar_a_cola("https://x.com/v", "mp3", "1080")  # píxeles en un audio
+    api.agregar_a_cola("https://x.com/v", "mp3", "192")
+    api.agregar_a_cola("https://x.com/v", "mp4", "720")
+    assert recibidas == [("max", None), ("mp3", None), ("mp3", 192), ("mp4", 720)]
+
+
 def test_api_rechaza_calidad_o_modo_invalido(datos):
     api = Api()
     assert api.agregar_a_cola("https://x.com/v", "max", "9999") is None

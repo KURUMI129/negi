@@ -23,6 +23,8 @@ FORMATOS = {
     "mp3": ["-f", "bestaudio/best", "-x", "--audio-format", "mp3", "--audio-quality", "0"],
 }
 
+AUDIO_KBPS = (320, 192, 128)
+
 # Título recortado a 150 bytes: evita pasar el límite de rutas de Windows con títulos larguísimos.
 PLANTILLA_NOMBRE = "%(title).150B [%(id)s].%(ext)s"
 PLANTILLA_PROGRESO = ("download:PROG %(progress._percent_str)s|%(progress._speed_str)s|"
@@ -64,8 +66,13 @@ def _matar_arbol(pid: int) -> None:
 
 
 def formato(modo: str, calidad: int | None = None) -> list[str]:
-    """Selector de formato. `calidad` = alto máximo en píxeles; si el video no la tiene, baja la mejor."""
-    if not calidad or modo == "mp3":
+    """Selector de formato. Para video, `calidad` = alto máximo en píxeles (si el video no la tiene,
+    baja la mejor). Para MP3, `calidad` = kbps (320/192/128); sin calidad = la máxima (VBR 0)."""
+    if modo == "mp3":
+        if calidad in AUDIO_KBPS:
+            return [*FORMATOS["mp3"][:-1], f"{int(calidad)}K"]
+        return FORMATOS["mp3"]
+    if not calidad:
         return FORMATOS[modo]
     h = f"[height<={int(calidad)}]"
     if modo == "max":

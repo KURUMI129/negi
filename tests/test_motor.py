@@ -33,9 +33,17 @@ def test_argumentos_calidad_720_mp4(tmp_path):
                                     "bv*[height<=720]+ba/b[height<=720]/bv*+ba/b")
 
 
-def test_argumentos_calidad_no_afecta_mp3(tmp_path):
+def test_argumentos_calidad_de_video_no_afecta_mp3(tmp_path):
     a = motor.argumentos("mp3", str(tmp_path), URL_CORTO, calidad=720)
     assert a[a.index("-f") + 1] == "bestaudio/best"
+    assert a[a.index("--audio-quality") + 1] == "0"
+
+
+@pytest.mark.parametrize("kbps", [320, 192, 128])
+def test_argumentos_mp3_con_kbps(tmp_path, kbps):
+    a = motor.argumentos("mp3", str(tmp_path), URL_CORTO, calidad=kbps)
+    assert a[a.index("-f") + 1] == "bestaudio/best"
+    assert a[a.index("--audio-quality") + 1] == f"{kbps}K"
 
 
 def test_argumentos_calidad_none_igual_que_antes(tmp_path):

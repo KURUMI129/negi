@@ -108,6 +108,9 @@ class Api:
                        titulo: str = "", miniatura: str = "", al_frente: bool = False) -> str | None:
         if modo not in ajustes.MODOS or calidad not in ajustes.CALIDADES or not url.strip():
             return None
+        es_kbps = bool(calidad) and int(calidad) in motor.AUDIO_KBPS
+        if calidad and (modo == "mp3") != es_kbps:
+            calidad = ""  # kbps en un video o píxeles en un audio: se usa la máxima
         carpeta = self._ajustes["carpeta"]
         if not Path(carpeta).is_dir():
             carpeta = ajustes.cargar()["carpeta"]  # vuelve a Descargas si la carpeta ya no existe

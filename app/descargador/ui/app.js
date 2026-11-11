@@ -26,7 +26,8 @@ function textoCalidad(alto) {
   if (alto >= 1440) return "Hasta 1440p (2K)";
   return `Hasta ${alto}p`;
 }
-const pareceEnlace = (t) => /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}\/\S+/i.test((t || "").trim());
+const textoCalidadElegida = (m, c) => (c ? (m === "mp3" ? `${c} kbps` : `${c}p`) : "");
+const pareceEnlace =(t) => /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}\/\S+/i.test((t || "").trim());
 const nombreArchivo = (ruta) => ruta.split(/[\\/]/).pop();
 const limpio = (t) => (t && !/unknown|n\/a/i.test(t) ? t : "");
 
@@ -73,11 +74,11 @@ function pedirPermisoNotificaciones() {
 // ---------- calidad ----------
 function ajustarCalidades() {
   const esAudio = modo() === "mp3";
-  $("calidades").hidden = esAudio;
   const alto = estado.vista && !estado.vista.es_lista ? estado.vista.alto_max : null;
   for (const input of document.querySelectorAll("input[name=calidad]")) {
+    const tipo = input.closest(".chip").dataset.tipo;  // video (píxeles) · audio (kbps) · ninguno = Máxima
     const v = Number(input.value);
-    const visible = !input.value || !alto || v <= alto;
+    const visible = !tipo || (esAudio ? tipo === "audio" : tipo === "video" && (!alto || v <= alto));
     input.closest(".chip").hidden = !visible;
     if (!visible && input.checked) document.querySelector("input[name=calidad][value='']").checked = true;
   }
@@ -143,7 +144,7 @@ async function encolar(ahora) {
     if (!lista) return;
   }
   mostrarError("");
-  const args = [estado.url, modo(), modo() === "mp3" ? "" : calidadElegida(), lista,
+  const args = [estado.url, modo(), calidadElegida(), lista,
                 estado.vista.titulo, estado.vista.miniatura || ""];
   const id = await (ahora ? api().descargar(...args) : api().agregar_a_cola(...args));
   if (!id) { mostrarError("No se pudo agregar. Revisa el enlace."); return; }
@@ -189,7 +190,7 @@ function actualizarElemento(li, e) {
   const est = li.querySelector(".elemento-estado");
   const barra = li.querySelector(".barra-progreso");
   const boton = li.querySelector("button");
-  const detalle = [NOMBRE_MODO[e.modo], e.calidad ? `${e.calidad}p` : ""].filter(Boolean).join(" · ");
+  const detalle = [NOMBRE_MODO[e.modo], textoCalidadElegida(e.modo, e.calidad)].filter(Boolean).join(" · ");
   if (e.estado === "espera") {
     est.textContent = `En espera · ${detalle}`;
     barra.hidden = true;
@@ -338,7 +339,7 @@ async function cargarHistorial() {
     const meta = document.createElement("p");
     meta.className = "elemento-estado";
     meta.textContent = h.existe
-      ? [fechaBonita(h.fecha), NOMBRE_MODO[h.modo], h.calidad ? `${h.calidad}p` : ""].filter(Boolean).join(" · ")
+      ? [fechaBonita(h.fecha), NOMBRE_MODO[h.modo], textoCalidadElegida(h.modo, h.calidad)].filter(Boolean).join(" · ")
       : "Archivo movido o borrado";
     const botones = document.createElement("div");
     botones.className = "historial-botones";

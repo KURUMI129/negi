@@ -48,6 +48,12 @@ def test_ajustes_ida_y_vuelta(datos, tmp_path):
     assert ajustes.cargar() == guardados
 
 
+def test_ajustes_acepta_calidades_de_audio(datos):
+    for kbps in ("320", "192", "128"):
+        ajustes.guardar({"carpeta": DESCARGAS, "modo": "mp3", "calidad": kbps, "ultima_revision": ""})
+        assert ajustes.cargar()["calidad"] == kbps
+
+
 def test_ajustes_calidad_invalida_vuelve_a_maxima(datos):
     ajustes.guardar({"carpeta": DESCARGAS, "modo": "max", "calidad": "9999", "ultima_revision": ""})
     assert ajustes.cargar()["calidad"] == ""
