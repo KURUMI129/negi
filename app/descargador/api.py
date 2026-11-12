@@ -9,6 +9,7 @@ import os
 import subprocess
 import shutil
 import threading
+import unicodedata
 import urllib.parse
 from pathlib import Path
 

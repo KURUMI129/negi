@@ -49,6 +49,9 @@ def test_ataque_nulo_en_vista_previa(api):
     "\\\\servidor\\compartido\\x.mp4",            # ruta de red de Windows
     "C:\\Windows\\System32\\calc.exe",
     "https://x.com/\nv",                           # salto de línea
+    "https://you​tube.com/watch?v=1",         # espacio invisible que disfraza el dominio
+    "https://‮moc.ebutuoy/watch?v=1",         # texto al revés (RTL override)
+    "https://youtube.com﻿/watch?v=1",          # marca invisible BOM
 ])
 def test_ataque_enlaces_no_validos_se_rechazan(api, url):
     assert api.agregar_a_cola(url, "max", "") is None
