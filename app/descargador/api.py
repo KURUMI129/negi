@@ -77,7 +77,10 @@ def validar_url(url: str) -> str | None:
     if not isinstance(url, str):
         return None
     url = url.strip()
-    if not url or len(url) > MAX_LARGO_URL or any(ord(c) < 32 or ord(c) == 127 for c in url) or "\\" in url:
+    if not url or len(url) > MAX_LARGO_URL or "\\" in url:
+        return None
+    # Caracteres de control o invisibles (ancho cero, texto al revés, BOM…) pueden disfrazar el dominio real.
+    if any(ord(c) < 32 or ord(c) == 127 or unicodedata.category(c) == "Cf" for c in url):
         return None
     if "://" not in url:
         url = "https://" + url
