@@ -9,7 +9,8 @@ raras, sin anuncios y sin cuentas.
 👉 **[Descargar la última versión](../../releases/latest)**
 
 - **Windows 10/11:** baja `Negi-Setup.exe` y ábrelo.
-- **Android:** baja el archivo `.apk` (cuando esté disponible) y ábrelo en el celular.
+- **Android 7 o más nuevo:** baja `Negi-<versión>.apk` desde el celular y ábrelo. Android te pedirá permitir
+  "instalar apps de orígenes desconocidos" para tu navegador o tu app de archivos: acéptalo solo para Negi.
 
 Negi se actualiza sola: cuando haya una versión nueva te mostrará **"Actualizar"**.
 
