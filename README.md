@@ -21,7 +21,8 @@ Solo pasa la primera vez.
 ## Qué puede hacer
 
 - Cola de descargas: agrega varios videos y se bajan uno tras otro.
-- Elegir calidad (Máxima, 4K, 1440p, 1080p, 720p, 480p) o solo audio MP3.
+- Elegir calidad de video (Máxima, 4K, 1440p, 1080p, 720p, 480p) o de audio MP3 (Máxima, 320, 192, 128 kbps).
+- Avisa antes de descargar si no hay espacio suficiente.
 - Historial de lo descargado, con Reproducir y Abrir carpeta.
 - Aviso cuando termina, aunque la ventana esté minimizada.
 
@@ -36,6 +37,8 @@ Descarga solo contenido que tengas derecho a guardar.
 - Incluye sin modificar [yt-dlp](https://github.com/yt-dlp/yt-dlp) (Unlicense),
   [ffmpeg](https://ffmpeg.org) (GPL, compilación de [gyan.dev](https://www.gyan.dev/ffmpeg/builds/);
   código fuente en ffmpeg.org) y [deno](https://deno.com) (MIT).
+- La versión de Android usa [youtubedl-android](https://github.com/yausername/youtubedl-android) (GPL-3.0):
+  su código fuente completo va en cada versión como `codigo-fuente.zip`.
 
 ## Para desarrolladores
 
