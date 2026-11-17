@@ -170,6 +170,7 @@ async function encolar(ahora) {
                             estado.vista.miniatura || "", subs, desde, hasta, estado.vista.duracion || null)
     : await api().agregar_a_cola(estado.url, modo(), calidadElegida(), lista, estado.vista.titulo,
                                  estado.vista.miniatura || "", false, subs, desde, hasta, estado.vista.duracion || null);
+  if (id && (desde || hasta) && subs !== "no") aviso("Al recortar, el video se descarga sin subtítulos.");
   if (id) { $("desde").value = ""; $("hasta").value = ""; $("recortar").open = false; }
   if (!id) { mostrarError("No se pudo agregar. Revisa el enlace."); return; }
   if (!ahora) aviso(`Agregado a la cola: ${estado.vista.titulo}`);

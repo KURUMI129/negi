@@ -47,6 +47,17 @@ def test_api_revisar_espacio(datos, monkeypatch):
     assert api.revisar_espacio("basura")["suficiente"] is True
 
 
+def test_api_recorte_desactiva_subtitulos(datos, monkeypatch):
+    # yt-dlp no desplaza ni recorta los subtítulos al cortar: quedarían desfasados y alargarían el video.
+    api = Api()
+    recibidas = []
+    monkeypatch.setattr(api._cola, "agregar", lambda *a, **k: recibidas.append(k) or "x")
+    api.agregar_a_cola("https://x.com/v", "max", "", subtitulos="dentro", desde="0:03", hasta="0:13", duracion=19)
+    api.agregar_a_cola("https://x.com/v", "max", "", subtitulos="dentro")
+    assert recibidas[0]["subtitulos"] == "no" and recibidas[0]["recorte"] == (3.0, 13.0)
+    assert recibidas[1]["subtitulos"] == "dentro"
+
+
 def test_api_cambiar_aviso_cerrada(datos, monkeypatch):
     from descargador import ajustes, notificador, rutas
     llamadas = []

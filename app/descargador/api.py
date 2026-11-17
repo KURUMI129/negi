@@ -193,6 +193,8 @@ class Api:
         recorte, error = _leer_recorte(desde, hasta, duracion)
         if error:
             return None
+        if recorte:
+            subtitulos = "no"  # yt-dlp no recorta ni desplaza los subtítulos: quedarían desfasados (igual que Android)
         if len(self._cola.elementos()) >= self.MAX_COLA:
             return None
         es_kbps = bool(calidad) and int(calidad) in motor.AUDIO_KBPS
