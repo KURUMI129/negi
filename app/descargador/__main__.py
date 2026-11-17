@@ -16,6 +16,16 @@ def _aviso(titulo: str, texto: str, botones: int = 0x40) -> int:
 
 
 def main() -> None:
+    import sys
+    if "--revisar-actualizacion" in sys.argv[1:]:
+        # Lo ejecuta la tarea diaria de Windows: sin ventana, solo revisa y avisa.
+        from . import VERSION, notificador
+        try:
+            notificador.revisar_y_avisar(VERSION)
+        except Exception:  # noqa: BLE001 - la tarea nunca debe mostrar errores
+            pass
+        return
+
     try:
         import webview
     except Exception as e:  # noqa: BLE001

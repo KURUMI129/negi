@@ -31,7 +31,8 @@ def test_guardar_desde_varios_hilos_no_pierde_ajustes(datos):
 
 def test_ajustes_por_defecto_sin_archivo(datos):
     a = ajustes.cargar()
-    assert a == {"carpeta": DESCARGAS, "modo": "max", "calidad": "", "ultima_revision": ""}
+    assert a == {"carpeta": DESCARGAS, "modo": "max", "calidad": "", "ultima_revision": "",
+                 "subtitulos": "no", "aviso_cerrada": "si", "ultima_avisada": ""}
 
 
 def test_ajustes_por_defecto_si_json_corrupto(datos):
@@ -43,7 +44,8 @@ def test_ajustes_por_defecto_si_json_corrupto(datos):
 def test_ajustes_ida_y_vuelta(datos, tmp_path):
     destino = tmp_path / "Videos 🎬"
     destino.mkdir()
-    guardados = {"carpeta": str(destino), "modo": "mp3", "calidad": "720", "ultima_revision": "2026-11-10"}
+    guardados = {"carpeta": str(destino), "modo": "mp3", "calidad": "720", "ultima_revision": "2026-11-10",
+                 "subtitulos": "dentro", "aviso_cerrada": "no", "ultima_avisada": "1.5.0"}
     ajustes.guardar(guardados)
     assert ajustes.cargar() == guardados
 

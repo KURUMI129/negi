@@ -45,7 +45,7 @@ Source: "arte\LICENCIA-miku.txt"; DestDir: "{app}\licencias"; DestName: "icono-h
 Source: "LEEME.txt"; DestDir: "{app}"; DestName: "LÉEME.txt"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\{#Nombre}"; Filename: "{app}\{#Exe}"
+Name: "{autoprograms}\{#Nombre}"; Filename: "{app}\{#Exe}"; AppUserModelID: "KURUMI129.Negi"
 Name: "{autodesktop}\{#Nombre}"; Filename: "{app}\{#Exe}"; Tasks: escritorio
 
 [Run]
@@ -58,6 +58,10 @@ Filename: "{app}\{#Exe}"; Flags: nowait skipifnotsilent
 Type: files; Name: "{app}\DescargadorDeVideos.exe"
 Type: files; Name: "{autoprograms}\Descargador de Videos.lnk"
 Type: files; Name: "{autodesktop}\Descargador de Videos.lnk"
+
+[UninstallRun]
+; Quita la revisión diaria de actualizaciones (si existe).
+Filename: "schtasks.exe"; Parameters: "/Delete /TN ""Negi\Revisar actualizaciones"" /F"; Flags: runhidden; RunOnceId: "BorrarTareaNegi"
 
 [UninstallDelete]
 ; El yt-dlp actualizado vive fuera de {app}; se borra al desinstalar. Los ajustes y los videos NO se tocan.

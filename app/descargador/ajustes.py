@@ -36,7 +36,8 @@ def carpeta_descargas() -> str:
 
 
 def _por_defecto() -> dict:
-    return {"carpeta": carpeta_descargas(), "modo": "max", "calidad": "", "ultima_revision": ""}
+    return {"carpeta": carpeta_descargas(), "modo": "max", "calidad": "", "ultima_revision": "",
+            "subtitulos": "no", "aviso_cerrada": "si", "ultima_avisada": ""}
 
 
 def _archivo() -> Path:

@@ -47,6 +47,18 @@ def test_api_revisar_espacio(datos, monkeypatch):
     assert api.revisar_espacio("basura")["suficiente"] is True
 
 
+def test_api_cambiar_aviso_cerrada(datos, monkeypatch):
+    from descargador import ajustes, notificador, rutas
+    llamadas = []
+    monkeypatch.setattr(rutas, "es_instalada", lambda: True)
+    monkeypatch.setattr(notificador, "registrar_tarea", lambda exe: llamadas.append("registrar") or True)
+    monkeypatch.setattr(notificador, "borrar_tarea", lambda: llamadas.append("borrar") or True)
+    api = Api()
+    assert api.cambiar_aviso_cerrada(False) is True and ajustes.cargar()["aviso_cerrada"] == "no"
+    assert api.cambiar_aviso_cerrada(True) is True and ajustes.cargar()["aviso_cerrada"] == "si"
+    assert llamadas == ["borrar", "registrar"]
+
+
 def test_api_rechaza_calidad_o_modo_invalido(datos):
     api = Api()
     assert api.agregar_a_cola("https://x.com/v", "max", "9999") is None

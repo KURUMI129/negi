@@ -71,7 +71,7 @@ def test_superficie_minima_expuesta_a_la_ventana():
     publicos = {n for n in dir(Api) if not n.startswith("_") and callable(getattr(Api, n))}
     assert publicos == {
         "abrir_carpeta", "abrir_licencias", "actualizar_app", "agregar_a_cola", "buscar_actualizacion",
-        "cola", "descargar", "elegir_carpeta", "error_recorte", "historial", "info", "llamar_atencion", "portapapeles",
+        "cambiar_aviso_cerrada", "cola", "descargar", "elegir_carpeta", "error_recorte", "historial", "info", "llamar_atencion", "portapapeles",
         "quitar_de_cola", "quitar_historial", "reproducir", "revisar_espacio", "version_motor", "vista_previa"}
 
 

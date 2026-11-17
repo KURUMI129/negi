@@ -14,7 +14,7 @@ import unicodedata
 import urllib.parse
 from pathlib import Path
 
-from . import NOMBRE, VERSION, actualizador, ajustes, historial, motor, rutas
+from . import NOMBRE, VERSION, actualizador, ajustes, historial, motor, notificador, rutas
 from .cola import Cola
 from .errores import mensaje_amigable
 
@@ -325,7 +325,19 @@ class Api:
         return None
 
     # --- revisión automática al abrir ------------------------------------
+    def cambiar_aviso_cerrada(self, activo: bool) -> bool:
+        """Casilla de Ajustes: avisar de versiones nuevas aunque Negi esté cerrada (tarea diaria de Windows)."""
+        self._ajustes["aviso_cerrada"] = "si" if activo else "no"
+        self._guardar()
+        if not rutas.es_instalada():
+            return True  # en desarrollo no se crea la tarea
+        import sys
+        return notificador.registrar_tarea(Path(sys.executable)) if activo else notificador.borrar_tarea()
+
     def _revisar_al_abrir(self) -> None:
+        if rutas.es_instalada() and self._ajustes.get("aviso_cerrada") != "no":
+            threading.Thread(target=self.cambiar_aviso_cerrada, args=(True,), daemon=True).start()
+
         def buscar_app() -> None:
             self._version_nueva = actualizador.buscar(VERSION)
             if self._version_nueva:
