@@ -54,7 +54,9 @@ def test_argumentos_calidad_none_igual_que_antes(tmp_path):
 def test_subtitulos_dentro(tmp_path):
     a = motor.argumentos("max", str(tmp_path), URL_CORTO, subtitulos="dentro")
     assert "--write-subs" in a and "--write-auto-subs" in a and "--embed-subs" in a
-    assert a[a.index("--sub-langs") + 1] == "es.*,es,en.*,orig"
+    idiomas = a[a.index("--sub-langs") + 1]
+    assert "es.*" not in idiomas  # evita las traducciones automáticas (es-en…), que YouTube limita con error 429
+    assert idiomas.startswith("es,es-419")
     assert a[a.index("--convert-subs") + 1] == "srt"
 
 
@@ -77,6 +79,24 @@ def test_recorte_secciones(tmp_path):
     assert a[a.index("--download-sections") + 1] == "*80-125.5"
     assert "--force-keyframes-at-cuts" in a
     assert a[-2:] == ["--", URL_CORTO]
+
+
+def test_si_fallan_los_subtitulos_descarga_igual_y_avisa(monkeypatch, tmp_path):
+    import sys
+    falso = ("import sys\n"
+             "if '--write-subs' in sys.argv: print('ERROR: Unable to download video subtitles for es: HTTP Error 429'); sys.exit(1)\n"
+             "print('FIN C:/v/x.mp4')\n")
+    monkeypatch.setattr(motor, "_comando", lambda args: [sys.executable, "-c", falso, *args])
+    eventos, fin = [], threading.Event()
+
+    def al(e):
+        eventos.append(e)
+        if e["tipo"] in ("listo", "error", "cancelado"):
+            fin.set()
+
+    motor.Descarga(URL_CORTO, "mp4", str(tmp_path), al, subtitulos="dentro").iniciar()
+    assert fin.wait(20)
+    assert eventos[-1]["tipo"] == "listo" and eventos[-1]["sin_subtitulos"] is True
 
 
 def test_resumen_tamano_suma_video_y_audio():

@@ -78,8 +78,11 @@ function pedirPermisoNotificaciones() {
 }
 
 // ---------- calidad ----------
+const subtitulosElegidos = () => document.querySelector("input[name=subtitulos]:checked").value;
+
 function ajustarCalidades() {
   const esAudio = modo() === "mp3";
+  $("subtitulos").hidden = esAudio;  // los subtítulos no aplican a "Solo audio"
   const alto = estado.vista && !estado.vista.es_lista ? estado.vista.alto_max : null;
   for (const input of document.querySelectorAll("input[name=calidad]")) {
     const tipo = input.closest(".chip").dataset.tipo;  // video (píxeles) · audio (kbps) · ninguno = Máxima
@@ -158,9 +161,16 @@ async function encolar(ahora) {
       `unos ${tamanoBonito(e.necesario)} libres.\nEn la carpeta elegida solo quedan ${tamanoBonito(e.libre)}.\n\n` +
       "Puedes liberar espacio, elegir una calidad menor u otra carpeta.\n¿Intentar de todas formas?")) return;
   }
-  const args = [estado.url, modo(), calidadElegida(), lista,
-                estado.vista.titulo, estado.vista.miniatura || ""];
-  const id = await (ahora ? api().descargar(...args) : api().agregar_a_cola(...args));
+  const desde = $("desde").value.trim(), hasta = $("hasta").value.trim();
+  const errorRecorte = await api().error_recorte(desde, hasta, estado.vista.duracion || null);
+  if (errorRecorte) { mostrarError(errorRecorte); $(desde && !hasta ? "desde" : "hasta").focus(); return; }
+  const subs = modo() === "mp3" ? "no" : subtitulosElegidos();
+  const id = ahora
+    ? await api().descargar(estado.url, modo(), calidadElegida(), lista, estado.vista.titulo,
+                            estado.vista.miniatura || "", subs, desde, hasta, estado.vista.duracion || null)
+    : await api().agregar_a_cola(estado.url, modo(), calidadElegida(), lista, estado.vista.titulo,
+                                 estado.vista.miniatura || "", false, subs, desde, hasta, estado.vista.duracion || null);
+  if (id) { $("desde").value = ""; $("hasta").value = ""; $("recortar").open = false; }
   if (!id) { mostrarError("No se pudo agregar. Revisa el enlace."); return; }
   if (!ahora) aviso(`Agregado a la cola: ${estado.vista.titulo}`);
   // Listo para pegar el siguiente enlace.
@@ -294,6 +304,7 @@ window.alEvento = (e) => {
       } else {
         aviso(`✓ Listo: ${e.titulo}`);
       }
+      if (e.sin_subtitulos) aviso(`«${e.titulo}» se descargó sin subtítulos (no estaban disponibles).`);
       if (!$("seccion-historial").hidden) cargarHistorial();
       break;
     case "cancelado": aviso(`Cancelado: ${e.titulo}`); break;
@@ -421,6 +432,10 @@ async function iniciar() {
   if (radio) radio.checked = true;
   const chip = document.querySelector(`input[name=calidad][value='${info.calidad || ""}']`);
   if (chip) chip.checked = true;
+  const sub = document.querySelector(`input[name=subtitulos][value='${info.subtitulos || "no"}']`);
+  if (sub) sub.checked = true;
+  $("aviso-cerrada").checked = info.aviso_cerrada !== "no";
+  $("aviso-cerrada").addEventListener("change", (ev) => api().cambiar_aviso_cerrada(ev.target.checked));
   ajustarCalidades();
   pintarCola(await api().cola());
   await revisarPortapapeles();

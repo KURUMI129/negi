@@ -82,7 +82,9 @@ def formato(modo: str, calidad: int | None = None) -> list[str]:
     return ["-f", selector, *FORMATOS[modo][2:]]
 
 
-IDIOMAS_SUBTITULOS = "es.*,es,en.*,orig"  # español → inglés → idioma original
+# Español → inglés → idioma original (auto "-orig"). Sin "es.*": eso incluye traducciones automáticas
+# (es-en…), que YouTube limita con error 429.
+IDIOMAS_SUBTITULOS = "es,es-419,es-ES,es-MX,es-US,en,en-US,en-GB,.*-orig"
 
 
 def _opciones_extra(modo: str, subtitulos: str, recorte: tuple[float, float] | None) -> list[str]:
@@ -249,12 +251,23 @@ class Descarga:
                 return
 
     def _trabajar(self) -> None:
+        archivos, ultimo_error, codigo = self._intento()
+        sin_subtitulos = False
+        if (not self.cancelada and not archivos and self.subtitulos != "no"
+                and "subtitle" in ultimo_error.lower()):
+            # Los subtítulos fallaron (p. ej. YouTube limita con error 429): se baja el video igual, sin ellos.
+            self.subtitulos, sin_subtitulos = "no", True
+            archivos, ultimo_error, codigo = self._intento()
+        self._final(archivos, ultimo_error, codigo, sin_subtitulos)
+
+    def _intento(self) -> tuple[list[str], str, int]:
         archivos: list[str] = []
         ultimo_error = ""
         codigo = -1
         try:
             Path(self.carpeta).mkdir(parents=True, exist_ok=True)
-            self._antes = {p.name for p in Path(self.carpeta).iterdir()}
+            if not self._antes:
+                self._antes = {p.name for p in Path(self.carpeta).iterdir()}
             self.proceso = subprocess.Popen(
                 _comando(argumentos(self.modo, self.carpeta, self.url, self.lista, self.calidad,
                                     self.subtitulos, self.recorte)),
@@ -277,6 +290,9 @@ class Descarga:
             codigo = self.proceso.wait()
         except (OSError, ValueError) as e:  # ValueError: enlace con caracter nulo u otro argumento inválido
             ultimo_error = str(e)
+        return archivos, ultimo_error, codigo
+
+    def _final(self, archivos: list[str], ultimo_error: str, codigo: int, sin_subtitulos: bool) -> None:
         try:
             if self.cancelada:
                 self._limpiar()
@@ -284,7 +300,7 @@ class Descarga:
             elif archivos and (codigo == 0 or self.lista):
                 # En una lista, si falló algún video pero otros se guardaron, se avisa sin tratarlo como error.
                 self.al_evento({"tipo": "listo", "archivo": archivos[-1], "cantidad": len(archivos),
-                                "incompleta": codigo != 0})
+                                "incompleta": codigo != 0, "sin_subtitulos": sin_subtitulos})
             else:
                 self.al_evento({"tipo": "error",
                                 "texto": mensaje_amigable(ultimo_error or f"yt-dlp terminó con código {codigo}")})

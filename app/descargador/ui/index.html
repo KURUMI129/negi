@@ -121,6 +121,22 @@
         <label class="chip" data-tipo="audio"><input type="radio" name="calidad" value="128"><span>128 kbps</span></label>
       </div>
 
+      <div class="calidades" id="subtitulos" role="radiogroup" aria-labelledby="lbl-subtitulos">
+        <span id="lbl-subtitulos" class="calidad-etiqueta">Subtítulos</span>
+        <label class="chip"><input type="radio" name="subtitulos" value="no" checked><span>No</span></label>
+        <label class="chip"><input type="radio" name="subtitulos" value="dentro"><span>Dentro del video</span></label>
+        <label class="chip"><input type="radio" name="subtitulos" value="aparte"><span>Archivo aparte</span></label>
+      </div>
+
+      <details class="recortar" id="recortar">
+        <summary>✂️ Recortar (bajar solo un pedazo)</summary>
+        <div class="recortar-campos">
+          <label>Desde <input id="desde" inputmode="numeric" placeholder="1:20" maxlength="12" autocomplete="off"></label>
+          <label>Hasta <input id="hasta" inputmode="numeric" placeholder="2:05" maxlength="12" autocomplete="off"></label>
+          <span class="ayuda">Vacío = desde el inicio / hasta el final.</span>
+        </div>
+      </details>
+
       <div class="destino">
         <svg><use href="#i-carpeta"/></svg>
         <div class="destino-texto">
@@ -190,6 +206,8 @@
       <p class="ayuda">Las páginas de videos cambian seguido. La app revisa sola una vez al día, pero puedes hacerlo ahora.</p>
       <button class="btn btn-secundario" id="btn-actualizar"><svg><use href="#i-recargar"/></svg>Buscar actualizaciones</button>
       <p class="ayuda" id="estado-actualizar" aria-live="polite"></p>
+      <label class="casilla"><input type="checkbox" id="aviso-cerrada" checked>
+        Avisarme de versiones nuevas aunque Negi esté cerrada</label>
     </div>
 
     <div class="grupo">
