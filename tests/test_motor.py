@@ -99,6 +99,20 @@ def test_si_fallan_los_subtitulos_descarga_igual_y_avisa(monkeypatch, tmp_path):
     assert eventos[-1]["tipo"] == "listo" and eventos[-1]["sin_subtitulos"] is True
 
 
+@pytest.mark.parametrize("error,reintenta", [
+    ("ERROR: Unable to download video subtitles for 'es': HTTP Error 429", True),
+    ("ERROR: [download] C:/v/My subtitles tutorial [x].mp4: timed out", False),  # "subtitle" solo en el título
+    ("ERROR: unable to download video data: HTTP Error 403", False),
+])
+def test_solo_reintenta_si_fallaron_los_subtitulos(error, reintenta):
+    assert motor.fallo_de_subtitulos(error) is reintenta
+
+
+def test_recorte_y_subtitulos_nunca_juntos_en_el_motor(tmp_path):
+    a = motor.argumentos("max", str(tmp_path), URL_CORTO, subtitulos="dentro", recorte=(3.0, 13.0))
+    assert "--write-subs" not in a and "--download-sections" in a
+
+
 def test_resumen_tamano_suma_video_y_audio():
     info = {"title": "x", "formats": [{"height": 1080, "vcodec": "avc1"}],
             "requested_formats": [{"filesize": 900_000_000}, {"filesize_approx": 100_000_000}]}

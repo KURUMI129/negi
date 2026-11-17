@@ -87,8 +87,18 @@ def formato(modo: str, calidad: int | None = None) -> list[str]:
 IDIOMAS_SUBTITULOS = "es,es-419,es-ES,es-MX,es-US,en,en-US,en-GB,.*-orig"
 
 
+_FALLO_SUBTITULOS = re.compile(r"^\s*ERROR:.*unable to download (?:video )?subtitles", re.IGNORECASE)
+
+
+def fallo_de_subtitulos(linea_error: str) -> bool:
+    """¿La descarga falló por los subtítulos? Solo el mensaje exacto de yt-dlp, nunca un título que diga 'subtitle'."""
+    return bool(_FALLO_SUBTITULOS.search(linea_error or ""))
+
+
 def _opciones_extra(modo: str, subtitulos: str, recorte: tuple[float, float] | None) -> list[str]:
     extra: list[str] = []
+    if recorte:
+        subtitulos = "no"  # yt-dlp no recorta ni desplaza los subtítulos: quedarían desfasados
     if subtitulos in ("dentro", "aparte") and modo != "mp3":
         extra += ["--write-subs", "--write-auto-subs", "--sub-langs", IDIOMAS_SUBTITULOS, "--convert-subs", "srt"]
         if subtitulos == "dentro":
@@ -254,7 +264,7 @@ class Descarga:
         archivos, ultimo_error, codigo = self._intento()
         sin_subtitulos = False
         if (not self.cancelada and not archivos and self.subtitulos != "no"
-                and "subtitle" in ultimo_error.lower()):
+                and fallo_de_subtitulos(ultimo_error)):
             # Los subtítulos fallaron (p. ej. YouTube limita con error 429): se baja el video igual, sin ellos.
             self.subtitulos, sin_subtitulos = "no", True
             archivos, ultimo_error, codigo = self._intento()
