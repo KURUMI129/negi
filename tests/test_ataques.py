@@ -182,7 +182,8 @@ def test_ataque_recorte_no_llega_a_la_cola(api, monkeypatch):
     assert llamadas == []
     assert api.agregar_a_cola("https://x.com/v", "max", "", subtitulos="dentro", desde="1:20", hasta="2:05",
                               duracion=300) == "x"
-    assert llamadas[-1]["recorte"] == (80.0, 125.0) and llamadas[-1]["subtitulos"] == "dentro"
+    assert llamadas[-1]["recorte"] == (80.0, 125.0)
+    assert llamadas[-1]["subtitulos"] == "no"  # con recorte se desactivan (yt-dlp los deja desfasados)
 
 
 # ---- 4. Inundar la cola ----
