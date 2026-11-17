@@ -82,11 +82,28 @@ def formato(modo: str, calidad: int | None = None) -> list[str]:
     return ["-f", selector, *FORMATOS[modo][2:]]
 
 
-def argumentos(modo: str, carpeta: str, url: str, lista: bool = False, calidad: int | None = None) -> list[str]:
+IDIOMAS_SUBTITULOS = "es.*,es,en.*,orig"  # español → inglés → idioma original
+
+
+def _opciones_extra(modo: str, subtitulos: str, recorte: tuple[float, float] | None) -> list[str]:
+    extra: list[str] = []
+    if subtitulos in ("dentro", "aparte") and modo != "mp3":
+        extra += ["--write-subs", "--write-auto-subs", "--sub-langs", IDIOMAS_SUBTITULOS, "--convert-subs", "srt"]
+        if subtitulos == "dentro":
+            extra.append("--embed-subs")
+    if recorte:
+        inicio, fin = (float(x) for x in recorte)  # números ya validados: nunca texto libre
+        extra += ["--download-sections", f"*{inicio:g}-{fin:g}", "--force-keyframes-at-cuts"]
+    return extra
+
+
+def argumentos(modo: str, carpeta: str, url: str, lista: bool = False, calidad: int | None = None,
+               subtitulos: str = "no", recorte: tuple[float, float] | None = None) -> list[str]:
     """Argumentos para yt-dlp (sin el ejecutable)."""
     return [
         *_comunes(),
         *formato(modo, calidad),
+        *_opciones_extra(modo, subtitulos, recorte),
         "--yes-playlist" if lista else "--no-playlist",
         "--windows-filenames",
         "--newline", "--progress",
@@ -188,9 +205,10 @@ class Descarga:
     """Una descarga en segundo plano. Avisa con eventos dict a `al_evento`."""
 
     def __init__(self, url: str, modo: str, carpeta: str,
-                 al_evento: Callable[[dict], None], lista: bool = False, calidad: int | None = None) -> None:
+                 al_evento: Callable[[dict], None], lista: bool = False, calidad: int | None = None,
+                 subtitulos: str = "no", recorte: tuple[float, float] | None = None) -> None:
         self.url, self.modo, self.carpeta, self.lista = url.strip(), modo, carpeta, lista
-        self.calidad = calidad
+        self.calidad, self.subtitulos, self.recorte = calidad, subtitulos, recorte
         self.al_evento = al_evento
         self.proceso: subprocess.Popen | None = None
         self.cancelada = False
@@ -238,7 +256,8 @@ class Descarga:
             Path(self.carpeta).mkdir(parents=True, exist_ok=True)
             self._antes = {p.name for p in Path(self.carpeta).iterdir()}
             self.proceso = subprocess.Popen(
-                _comando(argumentos(self.modo, self.carpeta, self.url, self.lista, self.calidad)),
+                _comando(argumentos(self.modo, self.carpeta, self.url, self.lista, self.calidad,
+                                    self.subtitulos, self.recorte)),
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                 creationflags=SIN_VENTANA, env=_entorno())
             if self.cancelada:  # canceló justo mientras arrancaba

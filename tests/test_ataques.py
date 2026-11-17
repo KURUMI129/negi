@@ -71,7 +71,7 @@ def test_superficie_minima_expuesta_a_la_ventana():
     publicos = {n for n in dir(Api) if not n.startswith("_") and callable(getattr(Api, n))}
     assert publicos == {
         "abrir_carpeta", "abrir_licencias", "actualizar_app", "agregar_a_cola", "buscar_actualizacion",
-        "cola", "descargar", "elegir_carpeta", "historial", "info", "llamar_atencion", "portapapeles",
+        "cola", "descargar", "elegir_carpeta", "error_recorte", "historial", "info", "llamar_atencion", "portapapeles",
         "quitar_de_cola", "quitar_historial", "reproducir", "revisar_espacio", "version_motor", "vista_previa"}
 
 
@@ -145,6 +145,44 @@ def test_ataque_bajar_a_version_vieja():
         {"name": "Negi-Setup.exe.sha256", "browser_download_url": "https://github.com/x/negi/releases/download/v0.1.0/h"}]}
     info = actualizador.elegir_mas_nueva([vieja])
     assert info and not actualizador.es_mas_nueva(info["version"], "1.3.0")
+
+
+# ---- 7. Recorte: tiempos maliciosos o imposibles ----
+
+@pytest.mark.parametrize("texto,esperado", [
+    ("1:20", 80.0), ("01:02:03", 3723.0), ("90", 90.0), ("0:05.5", 5.5), (" 2:00 ", 120.0),
+])
+def test_leer_tiempo_valido(texto, esperado):
+    from descargador.api import leer_tiempo
+    assert leer_tiempo(texto) == esperado
+
+
+@pytest.mark.parametrize("texto", [
+    "1:20; calc", "--exec calc", "-5", "1:99", "99999:99", "25:00:00", "1:2:3:4", "1e9", "1:20\x00",
+    "１:２０", "a" * 5000, "", "nan", "inf",
+])
+def test_ataque_tiempos_maliciosos(texto):
+    from descargador.api import leer_tiempo
+    assert leer_tiempo(texto) is None
+
+
+def test_recorte_imposible_se_explica(api):
+    assert api.error_recorte("2:00", "1:00", 300) == "«Desde» debe ser antes que «Hasta»."
+    assert api.error_recorte("0:10", "9:00", 300) == "«Hasta» pasa del final del video (5:00)."
+    assert api.error_recorte("1:20; calc", "", 300) == "Escribe los tiempos así: 1:20 o 1:02:03."
+    assert api.error_recorte("", "", 300) is None
+    assert api.error_recorte("1:00", "", 300) is None  # sin «Hasta» = hasta el final
+
+
+def test_ataque_recorte_no_llega_a_la_cola(api, monkeypatch):
+    llamadas = []
+    monkeypatch.setattr(api._cola, "agregar", lambda *a, **k: llamadas.append(k) or "x")
+    assert api.agregar_a_cola("https://x.com/v", "max", "", desde="1:00; calc", hasta="2:00") is None
+    assert api.agregar_a_cola("https://x.com/v", "max", "", subtitulos="--exec") is None
+    assert llamadas == []
+    assert api.agregar_a_cola("https://x.com/v", "max", "", subtitulos="dentro", desde="1:20", hasta="2:05",
+                              duracion=300) == "x"
+    assert llamadas[-1]["recorte"] == (80.0, 125.0) and llamadas[-1]["subtitulos"] == "dentro"
 
 
 # ---- 4. Inundar la cola ----

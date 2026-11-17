@@ -10,7 +10,7 @@ from descargador.cola import Cola
 class DescargaFalsa:
     """Simula motor.Descarga: el comportamiento depende de la URL ('ok', 'falla', 'lento')."""
 
-    def __init__(self, url, modo, carpeta, al_evento, lista=False, calidad=None):
+    def __init__(self, url, modo, carpeta, al_evento, lista=False, calidad=None, subtitulos="no", recorte=None):
         self.url, self.al_evento, self.calidad = url, al_evento, calidad
         self._cancelar = threading.Event()
         self._hilo = None

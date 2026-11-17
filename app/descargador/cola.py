@@ -35,9 +35,11 @@ class Cola:
 
     # --- cambios ---------------------------------------------------------
     def agregar(self, url: str, modo: str, calidad: int | None, carpeta: str, titulo: str = "",
-                miniatura: str = "", lista: bool = False, al_frente: bool = False) -> str:
+                miniatura: str = "", lista: bool = False, al_frente: bool = False,
+                subtitulos: str = "no", recorte: tuple[float, float] | None = None) -> str:
         e = {"id": uuid.uuid4().hex[:10], "url": url, "modo": modo, "calidad": calidad, "carpeta": carpeta,
-             "titulo": titulo or url, "miniatura": miniatura, "lista": lista, "estado": "espera", "pct": None}
+             "titulo": titulo or url, "miniatura": miniatura, "lista": lista, "estado": "espera", "pct": None,
+             "subtitulos": subtitulos, "recorte": list(recorte) if recorte else None}
         with self._candado:
             if al_frente:
                 self._espera.insert(0, e)
@@ -81,7 +83,8 @@ class Cola:
             self._actual = e
             self._descarga = self._fabrica(e["url"], e["modo"], e["carpeta"],
                                            lambda ev, ident=e["id"]: self._al_evento(ident, ev),
-                                           lista=e["lista"], calidad=e["calidad"])
+                                           lista=e["lista"], calidad=e["calidad"], subtitulos=e["subtitulos"],
+                                           recorte=tuple(e["recorte"]) if e["recorte"] else None)
             descarga = self._descarga
         self._avisar_lista()
         descarga.iniciar()

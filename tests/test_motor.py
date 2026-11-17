@@ -51,6 +51,34 @@ def test_argumentos_calidad_none_igual_que_antes(tmp_path):
         motor.argumentos("max", str(tmp_path), URL_CORTO)
 
 
+def test_subtitulos_dentro(tmp_path):
+    a = motor.argumentos("max", str(tmp_path), URL_CORTO, subtitulos="dentro")
+    assert "--write-subs" in a and "--write-auto-subs" in a and "--embed-subs" in a
+    assert a[a.index("--sub-langs") + 1] == "es.*,es,en.*,orig"
+    assert a[a.index("--convert-subs") + 1] == "srt"
+
+
+def test_subtitulos_aparte(tmp_path):
+    a = motor.argumentos("mp4", str(tmp_path), URL_CORTO, subtitulos="aparte")
+    assert "--write-subs" in a and "--embed-subs" not in a
+
+
+def test_subtitulos_no_en_mp3(tmp_path):
+    a = motor.argumentos("mp3", str(tmp_path), URL_CORTO, subtitulos="dentro")
+    assert "--write-subs" not in a
+
+
+def test_subtitulos_por_defecto_no(tmp_path):
+    assert "--write-subs" not in motor.argumentos("max", str(tmp_path), URL_CORTO)
+
+
+def test_recorte_secciones(tmp_path):
+    a = motor.argumentos("max", str(tmp_path), URL_CORTO, recorte=(80.0, 125.5))
+    assert a[a.index("--download-sections") + 1] == "*80-125.5"
+    assert "--force-keyframes-at-cuts" in a
+    assert a[-2:] == ["--", URL_CORTO]
+
+
 def test_resumen_tamano_suma_video_y_audio():
     info = {"title": "x", "formats": [{"height": 1080, "vcodec": "avc1"}],
             "requested_formats": [{"filesize": 900_000_000}, {"filesize_approx": 100_000_000}]}

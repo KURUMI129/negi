@@ -7,6 +7,7 @@ import datetime as dt
 import json
 import os
 import subprocess
+import re
 import shutil
 import threading
 import unicodedata
@@ -90,6 +91,49 @@ def validar_url(url: str) -> str | None:
     return url
 
 
+SUBTITULOS = ("no", "dentro", "aparte")
+_TIEMPO = re.compile(r"^(\d{1,2}):(\d{1,2}):(\d{1,2}(?:\.\d{1,3})?)$|^(\d{1,4}):(\d{1,2}(?:\.\d{1,3})?)$|^(\d{1,5}(?:\.\d{1,3})?)$")
+MAX_SEGUNDOS = 24 * 3600
+
+
+def leer_tiempo(texto: str) -> float | None:
+    """'1:20' → 80.0 · '01:02:03' → 3723.0 · '90' → 90.0. Solo dígitos ASCII, ':' y '.', máximo 24 h."""
+    if not isinstance(texto, str) or len(texto) > 16:
+        return None
+    m = _TIEMPO.match(texto.strip())
+    if not m or not texto.strip().isascii():
+        return None
+    h, mi, s, mi2, s2, solo = m.groups()
+    if solo is not None:
+        total = float(solo)
+    elif mi2 is not None:
+        if float(s2) >= 60:
+            return None
+        total = int(mi2) * 60 + float(s2)
+    else:
+        if int(mi) >= 60 or float(s) >= 60:
+            return None
+        total = int(h) * 3600 + int(mi) * 60 + float(s)
+    return total if 0 <= total <= MAX_SEGUNDOS else None
+
+
+def _leer_recorte(desde: str, hasta: str, duracion) -> tuple[tuple[float, float] | None, str | None]:
+    desde, hasta = (desde or "").strip(), (hasta or "").strip()
+    if not desde and not hasta:
+        return None, None
+    ini = leer_tiempo(desde) if desde else 0.0
+    fin = leer_tiempo(hasta) if hasta else (float(duracion) if isinstance(duracion, (int, float)) and duracion > 0
+                                            else float(MAX_SEGUNDOS))
+    if ini is None or fin is None:
+        return None, "Escribe los tiempos así: 1:20 o 1:02:03."
+    if ini >= fin:
+        return None, "«Desde» debe ser antes que «Hasta»."
+    if isinstance(duracion, (int, float)) and duracion > 0 and fin > duracion + 1:
+        m, s = divmod(int(duracion), 60)
+        return None, f"«Hasta» pasa del final del video ({m}:{s:02d})."
+    return (ini, fin), None
+
+
 class Api:
     """Métodos que la interfaz puede llamar con `pywebview.api.<nombre>()`."""
 
@@ -134,10 +178,20 @@ class Api:
         except Exception as e:  # noqa: BLE001 - nunca dejar la interfaz colgada
             return {"ok": False, "error": mensaje_amigable(str(e))}
 
+    def error_recorte(self, desde: str = "", hasta: str = "", duracion=None) -> str | None:
+        """Mensaje claro si el recorte no tiene sentido; None si está bien (o si no se pidió recorte)."""
+        return _leer_recorte(desde, hasta, duracion)[1]
+
     def agregar_a_cola(self, url: str, modo: str, calidad: str = "", lista: bool = False,
-                       titulo: str = "", miniatura: str = "", al_frente: bool = False) -> str | None:
+                       titulo: str = "", miniatura: str = "", al_frente: bool = False,
+                       subtitulos: str = "no", desde: str = "", hasta: str = "", duracion=None) -> str | None:
         url = validar_url(url)
         if url is None or modo not in ajustes.MODOS or calidad not in ajustes.CALIDADES:
+            return None
+        if subtitulos not in SUBTITULOS:
+            return None
+        recorte, error = _leer_recorte(desde, hasta, duracion)
+        if error:
             return None
         if len(self._cola.elementos()) >= self.MAX_COLA:
             return None
@@ -150,12 +204,15 @@ class Api:
         self._ajustes.update(modo=modo, calidad=calidad, carpeta=carpeta)
         self._guardar()
         return self._cola.agregar(url.strip(), modo, int(calidad) if calidad else None, carpeta,
-                                  titulo=titulo, miniatura=miniatura, lista=lista, al_frente=al_frente)
+                                  titulo=titulo, miniatura=miniatura, lista=lista, al_frente=al_frente,
+                                  subtitulos=subtitulos, recorte=recorte)
 
     def descargar(self, url: str, modo: str, calidad: str = "", lista: bool = False,
-                  titulo: str = "", miniatura: str = "") -> str | None:
+                  titulo: str = "", miniatura: str = "", subtitulos: str = "no", desde: str = "",
+                  hasta: str = "", duracion=None) -> str | None:
         """'Descargar ahora': entra al frente de la cola."""
-        return self.agregar_a_cola(url, modo, calidad, lista, titulo, miniatura, al_frente=True)
+        return self.agregar_a_cola(url, modo, calidad, lista, titulo, miniatura, True,
+                                   subtitulos, desde, hasta, duracion)
 
     def revisar_espacio(self, tamano) -> dict:
         """¿Cabe el video? Mientras descarga se necesita cerca del doble (imagen + sonido + unión)."""
